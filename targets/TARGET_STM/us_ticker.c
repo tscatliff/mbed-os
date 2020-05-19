@@ -45,7 +45,7 @@ void us_ticker_irq_handler(void);
 extern uint32_t prev_time;
 extern uint32_t elapsed_time;
 
-#if defined(TARGET_STM32F0)
+#if defined(TARGET_STM32F0) && defined(USE_TIM1)
 void timer_update_irq_handler(void)
 {
 #else
@@ -54,7 +54,7 @@ void timer_irq_handler(void)
 #endif
     TimMasterHandle.Instance = TIM_MST;
 
-#if defined(TARGET_STM32F0)
+#if defined(TARGET_STM32F0) && defined(USE_TIM1)
 } // end timer_update_irq_handler function
 
 void timer_oc_irq_handler(void)
@@ -107,12 +107,18 @@ void init_16bit_timer(void)
 
     // Output compare channel 1 interrupt for mbed timeout
 #if defined(TARGET_STM32F0)
+#if defined(USE_TIM1)
     NVIC_SetVector(TIM_MST_UP_IRQ, (uint32_t)timer_update_irq_handler);
     NVIC_EnableIRQ(TIM_MST_UP_IRQ);
     NVIC_SetPriority(TIM_MST_UP_IRQ, 0);
     NVIC_SetVector(TIM_MST_OC_IRQ, (uint32_t)timer_oc_irq_handler);
     NVIC_EnableIRQ(TIM_MST_OC_IRQ);
     NVIC_SetPriority(TIM_MST_OC_IRQ, 1);
+#else
+    NVIC_SetVector(TIM_MST_IRQ, (uint32_t)timer_irq_handler);
+    NVIC_EnableIRQ(TIM_MST_IRQ);
+    NVIC_SetPriority(TIM_MST_IRQ, 2);
+#endif
 #else
     NVIC_SetVector(TIM_MST_IRQ, (uint32_t)timer_irq_handler);
     NVIC_EnableIRQ(TIM_MST_IRQ);
