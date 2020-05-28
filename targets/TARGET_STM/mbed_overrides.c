@@ -31,9 +31,18 @@
 int mbed_sdk_inited = 0;
 extern void SetSysClock(void);
 
+// Provide a hook for a bootloader to enter
+MBED_WEAK void mbed_sdk_init_pre()
+{
+    // Nothing by default
+}
+
 // This function is called after RAM initialization and before main.
 void mbed_sdk_init()
 {
+    // hook to bootloader
+    mbed_sdk_init_pre();
+
 #if defined(__ICACHE_PRESENT) /* STM32F7 */
     // The mbed_sdk_init can be called either during cold boot or during
     // application boot after bootloader has been executed.
