@@ -960,6 +960,8 @@ class mbedToolchain(with_metaclass(ABCMeta, object)):
     STACK_PARAM = "target.boot-stack-size"
     TFM_LVL_PARAM = "tfm.level"
     XIP_ENABLE_PARAM = "target.xip-enable"
+    MAP_START_PARAM = "target.app-start"
+    MAP_SIZE_PARAM = "target.app-size"
 
     def add_linker_defines(self):
         params, _ = self.config_data
@@ -968,6 +970,22 @@ class mbedToolchain(with_metaclass(ABCMeta, object)):
             define_string = self.make_ld_define(
                 "MBED_BOOT_STACK_SIZE",
                 int(params[self.STACK_PARAM].value, 0)
+            )
+            self.ld.append(define_string)
+            self.flags["ld"].append(define_string)
+
+        if self.MAP_START_PARAM in params:
+            define_string = self.make_ld_define(
+                "MBED_APP_START",
+                int(params[self.MAP_START_PARAM].value, 0)
+            )
+            self.ld.append(define_string)
+            self.flags["ld"].append(define_string)
+
+        if self.MAP_SIZE_PARAM in params:
+            define_string = self.make_ld_define(
+                "MBED_APP_SIZE",
+                int(params[self.MAP_SIZE_PARAM].value, 0)
             )
             self.ld.append(define_string)
             self.flags["ld"].append(define_string)
