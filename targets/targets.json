@@ -2344,7 +2344,6 @@
         },
         "detect_code": ["0700"],
         "device_has_add": [
-            "CAN",
             "SERIAL_ASYNCH",
             "FLASH"
         ],
