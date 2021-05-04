@@ -110,7 +110,7 @@ void rtc_init(void)
 #endif /* __HAL_RCC_RTCAPB_CLK_ENABLE */
 
     RtcHandle.Instance = RTC;
-    RtcHandle.State = HAL_RTC_STATE_RESET;
+    //RtcHandle.State = HAL_RTC_STATE_RESET;
 
 #if TARGET_STM32F1
     RtcHandle.Init.AsynchPrediv = RTC_AUTO_1_SECOND;
