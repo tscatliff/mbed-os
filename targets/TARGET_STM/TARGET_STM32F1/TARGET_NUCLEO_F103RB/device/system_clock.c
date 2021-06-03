@@ -166,6 +166,7 @@ uint8_t SetSysClock_PLL_HSE(uint8_t bypass)
     RCC_PeriphCLKInitTypeDef RCC_PeriphCLKInit;
 #endif /* DEVICE_USBDEVICE */
 
+#ifdef F103_CLOCK_72MHZ
     /* Enable HSE oscillator and activate PLL with HSE as source */
     RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSE;
     if (bypass == 0) {
@@ -197,6 +198,39 @@ uint8_t SetSysClock_PLL_HSE(uint8_t bypass)
     RCC_PeriphCLKInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL_DIV1_5;
     HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInit);
 #endif /* DEVICE_USBDEVICE */
+#else
+    /* Enable HSE oscillator and activate PLL with HSE as source */
+    RCC_OscInitStruct.OscillatorType      = RCC_OSCILLATORTYPE_HSE;
+    if (bypass == 0) {
+        RCC_OscInitStruct.HSEState          = RCC_HSE_ON; /* External 8 MHz xtal on OSC_IN/OSC_OUT */
+    } else {
+        RCC_OscInitStruct.HSEState          = RCC_HSE_BYPASS; /* External 8 MHz clock on OSC_IN */
+    }
+    RCC_OscInitStruct.HSEPredivValue      = RCC_HSE_PREDIV_DIV1;
+    RCC_OscInitStruct.PLL.PLLState        = RCC_PLL_ON;
+    RCC_OscInitStruct.PLL.PLLSource       = RCC_PLLSOURCE_HSE;
+    RCC_OscInitStruct.PLL.PLLMUL          = RCC_PLL_MUL6; // 48 MHz (8 MHz * 6)
+    if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK) {
+        return 0; // FAIL
+    }
+
+    /* Select PLL as system clock source and configure the HCLK, PCLK1 and PCLK2 clocks dividers */
+    RCC_ClkInitStruct.ClockType      = (RCC_CLOCKTYPE_SYSCLK | RCC_CLOCKTYPE_HCLK | RCC_CLOCKTYPE_PCLK1 | RCC_CLOCKTYPE_PCLK2);
+    RCC_ClkInitStruct.SYSCLKSource   = RCC_SYSCLKSOURCE_PLLCLK; // 48 MHz
+    RCC_ClkInitStruct.AHBCLKDivider  = RCC_SYSCLK_DIV1;         // 48 MHz
+    RCC_ClkInitStruct.APB1CLKDivider = RCC_HCLK_DIV2;           // 24 MHz
+    RCC_ClkInitStruct.APB2CLKDivider = RCC_HCLK_DIV1;           // 48 MHz
+    if (HAL_RCC_ClockConfig(&RCC_ClkInitStruct, FLASH_LATENCY_2) != HAL_OK) {
+        return 0; // FAIL
+    }
+
+#if (DEVICE_USBDEVICE)
+    /* USB clock selection */
+    RCC_PeriphCLKInit.PeriphClockSelection = RCC_PERIPHCLK_USB;
+    RCC_PeriphCLKInit.UsbClockSelection = RCC_USBCLKSOURCE_PLL;
+    HAL_RCCEx_PeriphCLKConfig(&RCC_PeriphCLKInit);
+#endif /* DEVICE_USBDEVICE */
+#endif
 
     /* Output clock on MCO1 pin(PA8) for debugging purpose */
     //HAL_RCC_MCOConfig(RCC_MCO1, RCC_MCO1SOURCE_HSE, RCC_MCODIV_1); // 8 MHz
